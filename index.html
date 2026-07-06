@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <title>AI PRO TRADER - تحديث تلقائي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #090d16; color: white; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <div id="live-ticker" class="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1 p-2 bg-gray-950 border-b border-gray-800 text-[10px]">
+        </div>
+
+    <div class="flex-1 p-4 flex flex-col gap-4 overflow-hidden">
+        <div class="flex-1 grid grid-cols-2 gap-4">
+            <div class="bg-gray-900 rounded-xl border border-gray-800 p-3 flex flex-col">
+                <h3 class="text-green-500 font-bold mb-2">الصفقات الرابحة</h3>
+                <div id="list-wins" class="flex-1 overflow-y-auto custom-scrollbar space-y-2"></div>
+            </div>
+            <div class="bg-gray-900 rounded-xl border border-gray-800 p-3 flex flex-col">
+                <h3 class="text-red-500 font-bold mb-2">الصفقات الخاسرة</h3>
+                <div id="list-losses" class="flex-1 overflow-y-auto custom-scrollbar space-y-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // تعريف قائمة الأزواج التي تريد مراقبتها
+        const symbols = [
+            'AUDCAD', 'AUDCHF', 'AUDJPY', 'AUDUSD', 'CADCHF', 'CADJPY', 'CHFJPY', 
+            'EURAUD', 'EURCAD', 'EURCHF', 'EURGBP', 'EURJPY', 'EURNZD', 'EURUSD', 
+            'GBPAUD', 'GBPCAD', 'GBPCHF', 'GBPJPY', 'GBPNZD', 'USDJPY', 'USDCAD', 
+            'USDCHF', 'BTCUSDT', 'XAUUSDT'
+        ];
+
+        // دالة لجلب وعرض الأسعار تلقائياً
+        async function initTicker() {
+            const container = document.getElementById('live-ticker');
+            
+            // إنشاء العناصر تلقائياً
+            symbols.forEach(symbol => {
+                const div = document.createElement('div');
+                div.className = "bg-gray-900 p-1 rounded text-center border border-gray-800 hover:border-blue-500 transition-all";
+                div.innerHTML = `
+                    <div class="text-gray-500 font-bold">${symbol.replace('USDT', '')}</div>
+                    <div id="price-${symbol}" class="text-white font-mono">---</div>
+                `;
+                container.appendChild(div);
+            });
+
+            // بدء التحديث الدوري
+            setInterval(updatePrices, 3000);
+            updatePrices();
+        }
+
+        async function updatePrices() {
+            for (const symbol of symbols) {
+                try {
+                    const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`);
+                    const data = await res.json();
+                    document.getElementById(`price-${symbol}`).innerText = parseFloat(data.price).toFixed(3);
+                } catch (e) {}
+            }
+        }
+
+        // تشغيل النظام عند تحميل الصفحة
+        initTicker();
+    </script>
+</body>
+</html>
